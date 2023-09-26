@@ -2,7 +2,7 @@
 #---------------------------------------------------------------------------------
 
 
-REPLAY_MEMORY = 100
+REPLAY_MEMORY = 1000
  #Size of replay memory (deque object)
 
 N_STEP = 3
