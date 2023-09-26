@@ -594,6 +594,22 @@ class BasicEnv(gym.Env):
                 inaction = []
 
     def time_course (self, action):
+        """
+        this function is used to know how the passage of time develops. It sets the time that the robot must do the selected action.
+        Parameters
+        ----------
+        action : int
+            action taken by the robot..
+
+        Returns
+        -------
+        threshold: int
+            indicates the time of evaluation of the robot's action
+        fr_execution: int
+            indicates the time it takes for the robot to perform the action
+        fr_end: int
+            variable used to evaluate the subsequent reward, it serves to indicate when the robot would start to delay
+        """
         global frame, action_idx, inaction, ROBOT_ACTION_DURATIONS,ERROR_PROB
 
         sample = random.random() #0000
@@ -605,8 +621,6 @@ class BasicEnv(gym.Env):
             self.idles_list.append(self.idles)
             self.idles = 0
             
-
-        
         # Actualizamos el vector de las estimaciones, Robot execution times, con la muestra de la acción 'action'.    
         
         if sample < ERROR_PROB:
@@ -727,8 +741,41 @@ class BasicEnv(gym.Env):
         return threshold, fr_execution, fr_end
 
     def evaluation(self, action, fr_execution, fr_end, frame_post):
-        global frame, action_idx, inaction, new_energy, correct_action, recipe
+        """
+        function that assigns the reward corresponding to the given action. 
+        For example, if an action has been done late, as soon as the robot makes the person wait, 
+        the time reward starts to decrease, += -1.
 
+        Parameters
+        ----------
+        action : int
+            action taken by the robot.
+        fr_execution : int
+            time it takes for the robot to execute the action.
+        fr_end : int
+            frame indicating the moment when the person evaluates and the 
+            worst case will be the moment when he starts waiting for the robot.
+        frame_post : list
+            a list in which the last frame that has been evaluated is stored, for debugging purposes..
+
+        Returns
+        -------
+        reward: 
+            assigned reward
+        new_threshold: 
+            this variable takes value only when the robot must do another action, that is, 
+            when it has failed in the action selection and the person needs an object that has not yet been given.
+        optim: bool
+            indicates when the algorithm should be optimized (True)
+        frame_post: 
+            a list in which the last frame that has been evaluated is stored, for debugging purposes.
+        correct_action:
+            action indicated by asr by the person (in this case the person needs 
+                                                   an object that the robot has not yet given him/her)
+        
+            
+        """
+        global frame, action_idx, inaction, new_energy, correct_action, recipe
         optim = True
         simple_reward = self._take_action(action)
         new_threshold = 0
@@ -1127,7 +1174,6 @@ class BasicEnv(gym.Env):
         hri_time = 0
 
         threshold, fr_execution, fr_end = self.time_course(action)
-
 
         """
         if self.flags['decision']:
